@@ -11,20 +11,27 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Unpack source
+        run: |
+          mkdir src
+          unzip -q distant-horizons-vulkanmod-dh3_3_3-source.zip -d src
+          cd src/distant-horizons-vulkanmod-main
+          sed -i '/org.gradle.java.home/d' gradle.properties
+          chmod +x gradlew
+          ls versionProperties
 
       - name: Download DH and VulkanMod
+        working-directory: src/distant-horizons-vulkanmod-main
         run: |
           mkdir -p jars
           UA="User-Agent: dh-vulkanmod-build"
-          # Distant Horizons 3.3.3
           URL=$(curl -sG -H "$UA" https://api.modrinth.com/v2/project/distanthorizons/version \
             --data-urlencode 'game_versions=["1.21.11"]' \
             --data-urlencode 'loaders=["fabric"]' \
             | jq -r '[.[] | select(.version_number | contains("3.3.3"))][0].files[0].url')
           [ "$URL" = "null" ] && echo "DH 3.3.3 not found on Modrinth" && exit 1
           curl -sL -H "$UA" -o jars/DistantHorizons-3.3.3-1.21.11-fabric-neoforge.jar "$URL"
-          # VulkanMod (newest for 1.21.11)
           URL=$(curl -sG -H "$UA" https://api.modrinth.com/v2/project/vulkanmod/version \
             --data-urlencode 'game_versions=["1.21.11"]' \
             --data-urlencode 'loaders=["fabric"]' \
@@ -33,9 +40,11 @@ jobs:
           curl -sL -H "$UA" -o jars/VulkanMod_1.21.11-latest.jar "$URL"
           ls -la jars
 
-      - run: chmod +x gradlew
-      - run: ./gradlew :vulkan:build -PmcVer=1.21.11 --no-daemon
+      - name: Build
+        working-directory: src/distant-horizons-vulkanmod-main
+        run: ./gradlew :vulkan:build -PmcVer=1.21.11 --no-daemon
+
       - uses: actions/upload-artifact@v4
         with:
           name: dh-vulkanmod
-          path: vulkan/build/libs/*.jar
+          path: src/distant-horizons-vulkanmod-main/vulkan/build/libs/*.jar
