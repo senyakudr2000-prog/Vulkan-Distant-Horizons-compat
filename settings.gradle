@@ -1,0 +1,66 @@
+pluginManagement {
+    repositories {
+        maven { name "Fabric"; url "https://maven.fabricmc.net/" }
+        maven { name "Architectury"; url "https://maven.architectury.dev/" }
+        maven { name "Sponge"; url "https://repo.spongepowered.org/repository/maven-public/" }
+        maven { name "ParchmentMC"; url "https://maven.parchmentmc.org" }
+        mavenCentral()
+        gradlePluginPortal()
+        mavenLocal()
+    }
+}
+
+
+/** Loads version properties for the selected Minecraft version. */
+def loadProperties() {
+    def defaultMcVersion = "1.21.11"
+    def mcVersion = ""
+    def mcVers = fileTree("versionProperties").files.name
+    for (int i = 0; i < mcVers.size(); i++) {
+        mcVers[i] = mcVers[i].replaceAll("\\.properties", "")
+    }
+    mcVers.sort((a, b) -> sortSemanticVersionOldestToNewest(a, b))
+
+    int mcIndex = -1
+    println "Avalible MC versions: ${mcVers}"
+    if (hasProperty("mcVer")) {
+        mcVersion = mcVer
+        mcIndex = mcVers.indexOf(mcVer)
+    }
+
+    if (mcIndex == -1) {
+        println "No mcVer set or invalid. Defaulting to ${defaultMcVersion}."
+        println "Tip: Use -PmcVer=\"${defaultMcVersion}\" to set."
+        mcVersion = defaultMcVersion
+        mcIndex = mcVers.indexOf(defaultMcVersion)
+        assert mcIndex != -1
+    }
+
+    println "Loading properties file at ${mcVersion}.properties"
+    def props = new Properties()
+    props.load(new FileInputStream("$rootDir/versionProperties/${mcVersion}.properties"))
+
+    props.each { prop ->
+        gradle.ext.set(prop.key, prop.value)
+    }
+    gradle.ext.mcVers = mcVers
+    gradle.ext.mcIndex = mcIndex
+}
+
+private static int sortSemanticVersionOldestToNewest(String v1, String v2) {
+    String[] p1 = v1.split("\\.")
+    String[] p2 = v2.split("\\.")
+    for (int i = 0; i < Math.min(p1.length, p2.length); i++) {
+        int cmp = Integer.compare(Integer.parseInt(p1[i]), Integer.parseInt(p2[i]))
+        if (cmp != 0) return cmp
+    }
+    return Integer.compare(p1.length, p2.length)
+}
+
+loadProperties()
+
+
+// Subprojects
+include("vulkan")
+
+rootProject.name = "DistantHorizons"

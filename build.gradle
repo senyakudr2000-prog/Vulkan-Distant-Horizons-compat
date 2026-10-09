@@ -1,0 +1,44 @@
+/**
+ * Root build.gradle for the DH-VulkanMod extension mod.
+ *
+ * Single subproject: :vulkan (manages its own build independently).
+ * This file only handles transferring version properties to the project.
+ */
+
+plugins {
+    id "java"
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { name "Fabric"; url "https://maven.fabricmc.net/" }
+        maven { name "ParchmentMC"; url "https://maven.parchmentmc.org" }
+        maven { name "Architectury"; url "https://maven.architectury.dev/" }
+        maven { name "Sponge"; url "https://repo.spongepowered.org/repository/maven-public/" }
+    }
+}
+
+// Transfer properties loaded in settings.gradle (from versionProperties/) to the root project
+project.gradle.ext.getProperties().each { prop ->
+    rootProject.ext.set(prop.key, prop.value)
+}
+
+// Write build.properties for preprocessor compatibility
+def writeBuildGradlePredefine(List<String> mcVers, int mcIndex) {
+    StringBuilder sb = new StringBuilder()
+    sb.append("# DON'T TOUCH THIS FILE, This is handled by the build script\n")
+    for (int i = 0; i < mcVers.size(); i++) {
+        String verStr = mcVers[i].replace(".", "_")
+        sb.append("MC_${verStr}=${i}\n")
+        if (mcIndex == i) {
+            sb.append("MC_VER=${i}\n")
+        }
+    }
+    if (mod_version.toLowerCase().contains("dev")) {
+        sb.append("DEV_BUILD=\n")
+    }
+    new File(projectDir, "build.properties").text = sb.toString()
+}
+
+writeBuildGradlePredefine(rootProject.mcVers, rootProject.mcIndex)
