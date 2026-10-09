@@ -1,0 +1,14 @@
+{
+    "required": true,
+    "package": "com.braffolk.dhvulkan.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "plugin": "com.braffolk.dhvulkan.DhVulkanMixinPlugin",
+    "client": [
+        "dh3.MixinDependencySetup",
+        "shared.MixinLevelRenderer",
+        "shared.MixinLightMapWrapper"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}
