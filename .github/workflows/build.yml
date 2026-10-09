@@ -22,6 +22,7 @@ jobs:
           cd src/distant-horizons-vulkanmod-main
           sed -i '/org.gradle.java.home/d' gradle.properties
           sed -i '/render.glObject.GLProxy/d' vulkan/src/main/java/com/braffolk/dhvulkan/core/VulkanRenderContext.java
+          sed -i 's|^\([[:space:]]*gl_ClipDistance\[0\].*\)$|// \1|' vulkan/src/main/resources/shaders/vulkan/dh_terrain.vert
           chmod +x gradlew
           ls versionProperties
 
