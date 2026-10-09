@@ -14,8 +14,11 @@ jobs:
 
       - name: Unpack source
         run: |
+          ZIP=$(find . -name '*.zip' -not -path './src/*' | head -n 1)
+          echo "Found: $ZIP"
+          [ -z "$ZIP" ] && echo "No zip in repo" && exit 1
           mkdir src
-          unzip -q distant-horizons-vulkanmod-dh3_3_3-source.zip -d src
+          unzip -q "$ZIP" -d src
           cd src/distant-horizons-vulkanmod-main
           sed -i '/org.gradle.java.home/d' gradle.properties
           chmod +x gradlew
