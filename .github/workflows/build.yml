@@ -21,6 +21,7 @@ jobs:
           unzip -q "$ZIP" -d src
           cd src/distant-horizons-vulkanmod-main
           sed -i '/org.gradle.java.home/d' gradle.properties
+          sed -i '/render.glObject.GLProxy/d' vulkan/src/main/java/com/braffolk/dhvulkan/core/VulkanRenderContext.java
           chmod +x gradlew
           ls versionProperties
 
@@ -38,9 +39,9 @@ jobs:
           URL=$(curl -sG -H "$UA" https://api.modrinth.com/v2/project/vulkanmod/version \
             --data-urlencode 'game_versions=["1.21.11"]' \
             --data-urlencode 'loaders=["fabric"]' \
-            | jq -r '.[0].files[0].url')
-          [ "$URL" = "null" ] && echo "VulkanMod not found" && exit 1
-          curl -sL -H "$UA" -o jars/VulkanMod_1.21.11-latest.jar "$URL"
+            | jq -r '[.[] | select(.version_number | startswith("0.6.1"))][0].files[0].url')
+          [ "$URL" = "null" ] && echo "VulkanMod 0.6.1 not found" && exit 1
+          curl -sL -H "$UA" -o jars/VulkanMod_1.21.11-0.6.1.jar "$URL"
           ls -la jars
 
       - name: Build
